@@ -61,6 +61,15 @@ async def disable_kb_by_id(bot, chat_id: int, msg_id: int):
     except Exception:
         pass
 
+async def disable_last_crossword_kb(bot, chat_id: int, user_id: int):
+    msg_id = state.get(user_id, {}).get("last_crossword_msg_id")
+    if not msg_id:
+        return
+    try:
+        await bot.edit_message_reply_markup(chat_id=chat_id, message_id=msg_id, reply_markup=None)
+    except Exception:
+        pass
+
 def max_chapter() -> int:
     return max(CHAPTERS.keys())
 
@@ -240,20 +249,12 @@ async def start_crossword(cb: CallbackQuery | None = None, message: Message | No
     w0 = CH1_CROSSWORD[0]
 
     if cb:
-        await send_step(
-            cb,
-            text=w0["prompt"],
-            photo=w0.get("photo"),
-            markup=crossword_kb(0, False),
-        )
+        sent = await send_step(cb, text=w0["prompt"], photo=w0.get("photo"), markup=crossword_kb(0, False))
+        state[user_id]["last_crossword_msg_id"] = sent.message_id
         await cb.answer()
     else:
-        await send_step(
-            message,
-            text=w0["prompt"],
-            photo=w0.get("photo"),
-            markup=crossword_kb(0, False),
-        )
+        sent = await send_step(message, text=w0["prompt"], photo=w0.get("photo"), markup=crossword_kb(0, False))
+        state[user_id]["last_crossword_msg_id"] = sent.message_id
 
 async def start_rebus(cb: CallbackQuery | None = None, message: Message | None = None):
     user_id = (cb.from_user.id if cb else message.from_user.id)
@@ -723,12 +724,15 @@ async def campaign_text_router(message: Message):
 
             # следующий вопрос
             nxt = CH1_CROSSWORD[idx]
-            await send_step(
+            await disable_last_crossword_kb(message.bot, message.chat.id, user_id)
+
+            sent = await send_step(
                 message,
                 text=nxt["prompt"],
                 photo=nxt.get("photo"),
                 markup=crossword_kb(0, False),
             )
+            state[user_id]["last_crossword_msg_id"] = sent.message_id
             return
 
         # неправильный ответ
@@ -737,10 +741,13 @@ async def campaign_text_router(message: Message):
         state[user_id] = st
 
         show_turbo = hint_used and wrong >= 1  # турбо появится только после 1-й ошибки ПОСЛЕ подсказки
-        await message.answer(
+        await disable_last_crossword_kb(message.bot, message.chat.id, user_id)
+
+        sent = await message.answer(
             CH1_CROSSWORD[idx]["no"],
             reply_markup=crossword_kb(wrong, show_turbo),
         )
+        state[user_id]["last_crossword_msg_id"] = sent.message_id
         return
 
 
