@@ -18,7 +18,7 @@ from data.campaign.ch4 import CH4_STEPS, CH4_LIFTS
 from data.campaign.ch5 import CH5_STEPS, CH5_KEYRATE
 from data.campaign.ch5_quiz import CH5_QUIZ, CH5_QUIZ_PHOTOS, CH5_QUIZ_ACHIEVEMENTS
 
-from keyboards.campaign import keyrate_kb, keyrate_back_kb, keyrate_thanks_kb, keyrate_win_kb, ch5_quiz_kb, ch5_quiz_next_kb, ch5_quiz_menu_kb, story_kb, crossword_kb, ai_entry_kb, ai_chat_kb, rebus_kb
+from keyboards.campaign import keyrate_kb, keyrate_back_kb, keyrate_thanks_kb, keyrate_win_kb, ch5_quiz_kb, ch5_quiz_next_kb, ch5_quiz_menu_kb, story_kb, crossword_kb, ai_entry_kb, rebus_kb, ai_back_kb, ai_done_kb
 from services.campaign_progress import get_current_chapter, set_current_chapter
 from services.ai_client import ask_economist
 from html import escape as html_escape
@@ -660,7 +660,7 @@ async def camp_ai_start(cb: CallbackQuery):
 
     sent = await cb.message.answer(
         "🧠 Вопрос экономисту\n\nНапиши вопрос текстом (например: «Почему растут цены?»).",
-        reply_markup=ai_chat_kb(),
+        reply_markup=ai_done_kb(),
     )
 
     # запоминаем, где сейчас актуальные AI-кнопки
