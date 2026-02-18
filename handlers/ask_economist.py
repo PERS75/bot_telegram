@@ -43,9 +43,19 @@ async def economist_cb(cb: CallbackQuery, state: FSMContext):
 @router.message(AskState.waiting_question, F.text)
 async def economist_question(message: Message, state: FSMContext):
     q = message.text.strip()
+
+    # ✅ достаём данные FSM
+    data = await state.get_data()
+    if data.get("ai_busy"):
+        await message.answer("🤖 Я ещё думаю над прошлым вопросом 🙂 Подожди ответ и напиши следующий.")
+        return
+
     if len(q) < 3:
         await message.answer("Слишком коротко 🙂 Напиши вопрос чуть подробнее.", reply_markup=back_to_menu_kb())
         return
+
+    # ✅ ставим флаг busy
+    await state.update_data(ai_busy=True)
 
     await message.answer("🤖 Думаю…")
 
@@ -53,9 +63,13 @@ async def economist_question(message: Message, state: FSMContext):
         answer = await ask_economist(q)
     except Exception:
         log.exception("Economist request failed")
+        # ✅ снимаем флаг busy даже при ошибке
+        await state.update_data(ai_busy=False)
         await message.answer("Сейчас не получилось получить ответ. Попробуй позже.", reply_markup=back_to_menu_kb())
-        # ❗ НЕ clear — остаёмся в режиме вопросов, чтобы можно было попробовать ещё раз
         return
+
+    # ✅ снимаем флаг busy
+    await state.update_data(ai_busy=False)
 
     if not answer:
         answer = "Не получилось сформировать ответ. Попробуй переформулировать вопрос."

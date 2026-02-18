@@ -454,23 +454,42 @@ async def camp_next(cb: CallbackQuery):
 
 @router.callback_query(F.data == "camp:hint")
 async def camp_hint(cb: CallbackQuery):
-    st = state.get(cb.from_user.id)
+    user_id = cb.from_user.id
+    st = state.get(user_id)
     if not st or st.get("mode") != "crossword":
         await cb.answer()
         return
 
+    # ✅ защита: подсказка только на последнем "кроссвордном" сообщении
+    last_id = st.get("last_crossword_msg_id")
+    if last_id and cb.message.message_id != last_id:
+        try:
+            await cb.message.edit_reply_markup(reply_markup=None)
+        except Exception:
+            pass
+        await cb.answer("Эта кнопка устарела 🙂", show_alert=False)
+        return
+
+    # ✅ одноразовая подсказка на слово
+    if st.get("hint_used"):
+        await cb.answer("Подсказка уже была 🙂", show_alert=False)
+        return
+
     idx = int(st.get("word_idx", 0))
-    await cb.message.answer(CH1_CROSSWORD[idx]["hint"])
+    hint_text = CH1_CROSSWORD[idx]["hint"]
 
-    # отмечаем, что подсказку использовали
+    # 1) отмечаем подсказку использованной
     st["hint_used"] = True
-    state[cb.from_user.id] = st
+    state[user_id] = st
 
-    # ✅ убираем кнопку "Подсказка" на том сообщении, где нажали
+    # 2) отправляем подсказку ОДИН раз
+    await cb.message.answer(hint_text)
+
+    # 3) убираем кнопку "Подсказка" с этого сообщения
+    #    оставляем, например, только кнопку "Турбо" (или вообще ничего — как тебе надо)
     try:
-        # после подсказки подсказку больше не показываем
-        await cb.message.edit_reply_markup(reply_markup=crossword_kb(wrong=0, show_turbo=False))
-        # если у тебя show_turbo должен появляться только после ошибки — оставь как выше
+        await cb.message.edit_reply_markup(reply_markup=crossword_kb(0, True))
+        # если хочешь вообще без кнопок после подсказки: reply_markup=None
     except Exception:
         pass
 
@@ -820,12 +839,13 @@ async def campaign_text_router(message: Message):
     # =========================
     if mode == "camp_ai":
         q = message.text.strip()
-        if len(q) < 3:
-            await message.answer("Слишком коротко 🙂 Напиши вопрос чуть подробнее.", reply_markup=ai_chat_kb())
-            return
 
         if st.get("ai_busy"):
             await message.answer("🤖 Я ещё думаю над прошлым вопросом 🙂 Подожди ответ и напиши следующий.")
+            return
+        
+        if len(q) < 3:
+            await message.answer("Слишком коротко 🙂 Напиши вопрос чуть подробнее.", reply_markup=ai_chat_kb())
             return
 
         # гасим кнопки на прошлом AI сообщении
