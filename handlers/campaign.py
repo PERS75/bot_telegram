@@ -167,54 +167,30 @@ async def show_story(event: Union[CallbackQuery, Message], step_idx: int):
             state[user_id]["last_story_msg_id"] = sent.message_id
         return
 
-    # обычный story шаг
+    # ===== обычный story шаг =====
+    text = step.get("text")
+    if not text:
+        await show_story(event, step_idx + 1)
+        return
+
+    photo = step.get("photo")
+
+    # клавиатура: keyrate_immediate -> варианты, иначе -> story_kb
     if step.get("keyrate_immediate"):
-        markup = keyrate_kb()  # только варианты
+        markup = keyrate_kb()
     else:
         next_text = step.get("next_text", "Далее")
         show_menu = (step_idx == 0)
         markup = story_kb(next_text, show_menu=show_menu)
 
-    # ❗ убираем кнопки у самого первого сообщения (глава 1, шаг 0)
+    # 🚫 ВАЖНО: если шаг с автопереходом — кнопок быть не должно (иначе мигание)
+    if step.get("autonext"):
+        markup = None
+
+    # 🚫 ВАЖНО: первое сообщение 1 главы — без кнопок (если оно автопереходное или нет)
     if cur_ch == 1 and step_idx == 0:
         markup = None
 
-    # 2) любой шаг с автопереходом — без кнопок (иначе они мелькают до disable_prev_kb)
-    show_menu = (step_idx == 0) and (not step.get("autonext"))
-
-    text = step.get("text")
-    if not text:
-        await show_story(event, step_idx + 1)
-        return
-
-    photo = step.get("photo")
-
-    if step.get("keyrate_immediate"):
-        markup = keyrate_kb()          # <-- только варианты, без "Далее"
-    else:
-        next_text = step.get("next_text", "Далее")
-        show_menu = (step_idx == 0)
-        markup = story_kb(next_text, show_menu=show_menu)
-        
-    text = step.get("text")
-
-    if not text:
-        await show_story(event, step_idx + 1)
-        return
-
-    photo = step.get("photo")
-    resolved = resolve_path(photo) if isinstance(photo, str) else None
-    exists = os.path.exists(resolved) if resolved else False
-
-    print(
-        "DEBUG STEP:", step_idx,
-        "photo=", photo,
-        "resolved=", resolved,
-        "exists=", exists,
-        "cwd=", os.getcwd()
-)
-    
-    
     chat_id = event.message.chat.id if isinstance(event, CallbackQuery) else event.chat.id
     await disable_prev_kb(user_id, event.bot, chat_id)
 
