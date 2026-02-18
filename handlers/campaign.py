@@ -466,6 +466,14 @@ async def camp_hint(cb: CallbackQuery):
     st["hint_used"] = True
     state[cb.from_user.id] = st
 
+    # ✅ убираем кнопку "Подсказка" на том сообщении, где нажали
+    try:
+        # после подсказки подсказку больше не показываем
+        await cb.message.edit_reply_markup(reply_markup=crossword_kb(wrong=0, show_turbo=False))
+        # если у тебя show_turbo должен появляться только после ошибки — оставь как выше
+    except Exception:
+        pass
+
     await cb.answer()
 
 
@@ -816,18 +824,32 @@ async def campaign_text_router(message: Message):
             await message.answer("Слишком коротко 🙂 Напиши вопрос чуть подробнее.", reply_markup=ai_chat_kb())
             return
 
+        if st.get("ai_busy"):
+            await message.answer("🤖 Я ещё думаю над прошлым вопросом 🙂 Подожди ответ и напиши следующий.")
+            return
+
+        # гасим кнопки на прошлом AI сообщении
         prev_ai = state.get(user_id, {}).get("last_ai_msg_id")
         if prev_ai:
             await disable_kb_by_id(message.bot, message.chat.id, prev_ai)
 
+        st["ai_busy"] = True
+        state[user_id] = st
 
         await message.answer("🤖 Думаю…")
 
         try:
             answer = await ask_economist(q)
         except Exception:
+            st = state.get(user_id, {})
+            st["ai_busy"] = False
+            state[user_id] = st
             await message.answer("Сейчас не получилось получить ответ. Попробуй позже.", reply_markup=ai_chat_kb())
             return
+
+        st = state.get(user_id, {})
+        st["ai_busy"] = False
+        state[user_id] = st
 
         if not answer:
             answer = "Не получилось сформировать ответ. Попробуй переформулировать вопрос."
@@ -838,7 +860,6 @@ async def campaign_text_router(message: Message):
         )
         state.setdefault(user_id, {})
         state[user_id]["last_ai_msg_id"] = sent.message_id
-        
         return
 
     # =========================
