@@ -179,6 +179,9 @@ async def show_story(event: Union[CallbackQuery, Message], step_idx: int):
     if cur_ch == 1 and step_idx == 0:
         markup = None
 
+    # 2) любой шаг с автопереходом — без кнопок (иначе они мелькают до disable_prev_kb)
+    show_menu = (step_idx == 0) and (not step.get("autonext"))
+
     text = step.get("text")
     if not text:
         await show_story(event, step_idx + 1)
