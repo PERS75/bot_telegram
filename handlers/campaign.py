@@ -841,14 +841,20 @@ async def campaign_text_router(message: Message):
         q = message.text.strip()
 
         if st.get("ai_busy"):
-            await message.answer("🤖 Я ещё думаю над прошлым вопросом 🙂 Подожди ответ и напиши следующий.")
-            return
-        
-        if len(q) < 3:
-            await message.answer("Слишком коротко 🙂 Напиши вопрос чуть подробнее.", reply_markup=ai_chat_kb())
+            await message.answer(
+                "🤖 Я ещё думаю над прошлым вопросом 🙂 Подожди ответ и напиши следующий.",
+                reply_markup=ai_back_kb()
+            )
             return
 
-        # гасим кнопки на прошлом AI сообщении
+        if len(q) < 3:
+            await message.answer(
+                "Слишком коротко 🙂 Напиши вопрос чуть подробнее.",
+                reply_markup=ai_back_kb()
+            )
+            return
+
+        # гасим кнопки на прошлом AI сообщении (где были кнопки)
         prev_ai = state.get(user_id, {}).get("last_ai_msg_id")
         if prev_ai:
             await disable_kb_by_id(message.bot, message.chat.id, prev_ai)
@@ -856,7 +862,8 @@ async def campaign_text_router(message: Message):
         st["ai_busy"] = True
         state[user_id] = st
 
-        await message.answer("🤖 Думаю…")
+        # "думаю" — только вернуться
+        await message.answer("🤖 Думаю…", reply_markup=ai_back_kb())
 
         try:
             answer = await ask_economist(q)
@@ -864,7 +871,10 @@ async def campaign_text_router(message: Message):
             st = state.get(user_id, {})
             st["ai_busy"] = False
             state[user_id] = st
-            await message.answer("Сейчас не получилось получить ответ. Попробуй позже.", reply_markup=ai_chat_kb())
+            await message.answer(
+                "Сейчас не получилось получить ответ. Попробуй позже.",
+                reply_markup=ai_back_kb()
+            )
             return
 
         st = state.get(user_id, {})
@@ -874,9 +884,10 @@ async def campaign_text_router(message: Message):
         if not answer:
             answer = "Не получилось сформировать ответ. Попробуй переформулировать вопрос."
 
+        # ✅ ответ — только "Теперь понятно"
         sent = await message.answer(
-            answer + "\n\n(Можешь задать ещё вопрос)",
-            reply_markup=ai_chat_kb()
+            answer + "\n\n(Можешь задать ещё вопрос или нажать «✅ Теперь понятно»)",
+            reply_markup=ai_done_kb()
         )
         state.setdefault(user_id, {})
         state[user_id]["last_ai_msg_id"] = sent.message_id

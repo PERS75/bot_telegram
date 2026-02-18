@@ -43,13 +43,15 @@ def ai_entry_kb() -> InlineKeyboardMarkup:
     kb.adjust(1, 1)
     return kb.as_markup()
 
-
-def ai_chat_kb() -> InlineKeyboardMarkup:
+def ai_back_kb():
     kb = InlineKeyboardBuilder()
-    kb.button(text="✅ Теперь все понятно!", callback_data="camp:ai:done")
-    kb.adjust(1)
+    kb.button(text="↩️ Вернуться", callback_data="camp:ai:done")
     return kb.as_markup()
 
+def ai_done_kb():
+    kb = InlineKeyboardBuilder()
+    kb.button(text="✅ Теперь понятно", callback_data="camp:ai:done")
+    return kb.as_markup()
 
 def rebus_kb(wrong_tries: int):
     """
