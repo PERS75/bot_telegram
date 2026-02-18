@@ -168,15 +168,21 @@ async def show_story(event: Union[CallbackQuery, Message], step_idx: int):
         return
 
     # обычный story шаг
-    next_text = step.get("next_text", "Далее")
-    show_menu = (step_idx == 0)
-
     if step.get("keyrate_immediate"):
-        markup = keyrate_kb()
+        markup = keyrate_kb()  # только варианты
     else:
+        next_text = step.get("next_text", "Далее")
+        show_menu = (step_idx == 0)
         markup = story_kb(next_text, show_menu=show_menu)
 
-    if cur_ch == 1 and step_idx == 0: markup = None
+    # ❗ убираем кнопки у самого первого сообщения (глава 1, шаг 0)
+    if cur_ch == 1 and step_idx == 0:
+        markup = None
+
+    text = step.get("text")
+    if not text:
+        await show_story(event, step_idx + 1)
+        return
 
     photo = step.get("photo")
 
