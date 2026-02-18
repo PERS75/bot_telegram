@@ -1,7 +1,7 @@
 CH2_STEPS = [
     {
         "type": "story",
-        "photo": "data/campaign/assets/ch2/img_1.jpg",  # "assets/ch2/run_corridor.png"
+        "photo": "data/campaign/assets/ch2/img_1.png",  # "assets/ch2/run_corridor.png"
         "text": (
             "🧑🏻‍🦱 Где же он? Вика, куда он делся?\n\n"
             "👩🏻‍🦰 Я потеряла его из виду.\n\n"
@@ -11,7 +11,7 @@ CH2_STEPS = [
     },
     {
         "type": "story",
-        "photo": "data/campaign/assets/ch2/img_2.jpg",  # "assets/ch2/electronics_store.png"
+        "photo": "data/campaign/assets/ch2/img_2.png",  # "assets/ch2/electronics_store.png"
         "text": (
             "🧑🏻‍🦱 Ребята, это уже не смешно! Сначала обед в кафе, теперь электроника! "
             "Подписчики пишут, что в соседнем магазине подорожал даже наш мерч! "
@@ -50,7 +50,7 @@ CH2_STEPS = [
     },
     {
         "type": "story",
-        "photo": "data/campaign/assets/ch2/img_5.jpg",  # "assets/ch2/basket.png"
+        "photo": "data/campaign/assets/ch2/img_5.png",  # "assets/ch2/basket.png"
         "text": (
             "🤖 В неё можно положить разное. Например, немного еды (хлеб, молоко, чипсы), "
             "одежду (ваши любимые худи), гаджеты (микрофон и камеру) и даже оплату за кино и проезд в автобусе.\n\n"
@@ -69,7 +69,7 @@ CH2_STEPS = [
 
     {
         "type": "story",
-        "photo": "data/campaign/assets/ch2/img_6.jpg",  # "assets/ch2/tv_factory.png"
+        "photo": "data/campaign/assets/ch2/img_6.png",  # "assets/ch2/tv_factory.png"
         "text": (
             "Смотрите! Инфляцио опять сбежал!\n\n"
             "🧑🏻‍🦱 Он на заводе микрофонов\n\n"

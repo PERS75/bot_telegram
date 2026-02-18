@@ -176,6 +176,8 @@ async def show_story(event: Union[CallbackQuery, Message], step_idx: int):
     else:
         markup = story_kb(next_text, show_menu=show_menu)
 
+    if cur_ch == 1 and step_idx == 0: markup = None
+
     photo = step.get("photo")
 
     if step.get("keyrate_immediate"):
