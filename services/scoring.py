@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from services.storage import load_scores, save_scores
+from services.storage import load_scores, update_scores
 
 TZ = ZoneInfo("Europe/Amsterdam")
 
@@ -12,33 +12,34 @@ def upsert_user(user_id: int, full_name: str | None, username: str | None):
     """
     Сохраняем данные пользователя, чтобы потом показывать имена в лидерборде.
     """
-    data = load_scores()
     uid = str(user_id)
 
     # как показывать пользователя по умолчанию
     display = f"@{username}" if username else (full_name or uid)
 
-    data["users"][uid] = {
-        "display": display,
-        "username": username or "",
-        "full_name": full_name or "",
-        "updated_at": datetime.now(TZ).isoformat(timespec="seconds"),
-    }
-    save_scores(data)
+    def mutator(data: dict) -> None:
+        data["users"][uid] = {
+            "display": display,
+            "username": username or "",
+            "full_name": full_name or "",
+            "updated_at": datetime.now(TZ).isoformat(timespec="seconds"),
+        }
+
+    update_scores(mutator)
 
 def add_points(user_id: int, points: int):
-    data = load_scores()
     uid = str(user_id)
 
-    # total
-    data["total"][uid] = data["total"].get(uid, 0) + points
+    def mutator(data: dict) -> None:
+        # total
+        data["total"][uid] = data["total"].get(uid, 0) + points
 
-    # daily
-    day = _today_key()
-    data["daily"].setdefault(day, {})
-    data["daily"][day][uid] = data["daily"][day].get(uid, 0) + points
+        # daily
+        day = _today_key()
+        data["daily"].setdefault(day, {})
+        data["daily"][day][uid] = data["daily"][day].get(uid, 0) + points
 
-    save_scores(data)
+    update_scores(mutator)
 
 def get_profile(user_id: int):
     data = load_scores()

@@ -1,7 +1,6 @@
 import logging
 
 from aiogram import Router, F
-from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
@@ -33,14 +32,6 @@ async def economist_cb(cb: CallbackQuery, state: FSMContext):
     await cb.message.edit_text(PROMPT_TEXT, reply_markup=back_to_menu_kb())
     await state.update_data(prompt_msg_id=cb.message.message_id)
 
-    await cb.answer()
-
-
-@router.callback_query(F.data == "menu:economist")
-async def economist_cb(cb: CallbackQuery, state: FSMContext):
-    upsert_user(cb.from_user.id, cb.from_user.full_name, cb.from_user.username)
-    await state.set_state(AskState.waiting_question)
-    await cb.message.edit_text(PROMPT_TEXT, reply_markup=back_to_menu_kb())
     await cb.answer()
 
 
