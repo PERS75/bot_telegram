@@ -31,7 +31,6 @@ async def main():
     await bot.delete_webhook(drop_pending_updates=True)
 
     await bot.set_my_commands([
-        BotCommand(command="start", description="Запустить бота"),
         BotCommand(command="menu", description="Открыть главное меню"),
     ])
     await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
