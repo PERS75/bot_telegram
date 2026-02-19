@@ -25,11 +25,15 @@ PROMPT_TEXT = (
 )
 
 
-@router.message(Command("economist"))
-async def economist_cmd(message: Message, state: FSMContext):
-    upsert_user(message.from_user.id, message.from_user.full_name, message.from_user.username)
+@router.callback_query(F.data == "menu:economist")
+async def economist_cb(cb: CallbackQuery, state: FSMContext):
+    upsert_user(cb.from_user.id, cb.from_user.full_name, cb.from_user.username)
     await state.set_state(AskState.waiting_question)
-    await message.answer(PROMPT_TEXT, reply_markup=back_to_menu_kb())
+
+    await cb.message.edit_text(PROMPT_TEXT, reply_markup=back_to_menu_kb())
+    await state.update_data(prompt_msg_id=cb.message.message_id)
+
+    await cb.answer()
 
 
 @router.callback_query(F.data == "menu:economist")
@@ -43,6 +47,19 @@ async def economist_cb(cb: CallbackQuery, state: FSMContext):
 @router.message(AskState.waiting_question, F.text)
 async def economist_question(message: Message, state: FSMContext):
     q = message.text.strip()
+
+
+    data = await state.get_data()
+    prompt_id = data.get("prompt_msg_id")
+    if prompt_id:
+        try:
+            await message.bot.edit_message_reply_markup(
+                chat_id=message.chat.id,
+                message_id=prompt_id,
+                reply_markup=None
+            )
+        except Exception:
+            pass
 
     # ✅ достаём данные FSM
     data = await state.get_data()
