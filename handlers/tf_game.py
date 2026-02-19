@@ -31,7 +31,6 @@ def question_kb(qid: int):
     kb.button(text="✅ Правда", callback_data=f"tf:ans:{qid}:1")
     kb.button(text="❌ Ложь", callback_data=f"tf:ans:{qid}:0")
     kb.button(text="⛔ Стоп", callback_data="tf:stop")
-    kb.button(text="🏠 Главное меню", callback_data="menu:home")
     kb.adjust(2, 1, 1)
     return kb.as_markup()
 
