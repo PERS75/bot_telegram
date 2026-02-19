@@ -48,7 +48,6 @@ def quiz_kb(qid: int):
     kb.button(text="D", callback_data=f"quiz:ans:{qid}:3")
 
     kb.button(text="⛔ Стоп", callback_data="quiz:stop")
-    kb.button(text="🎮 Игры", callback_data="menu:games")
 
     kb.adjust(4, 1, 1, 1)
     return kb.as_markup()
