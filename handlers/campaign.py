@@ -130,6 +130,7 @@ async def show_story(event: Union[CallbackQuery, Message], step_idx: int):
     if step_idx >= len(steps):
         if cur_ch < max_chapter():
             set_chapter(user_id, cur_ch + 1)
+            cur_ch += 1
             steps = get_steps_for(user_id)
             step_idx = 0
         else:
@@ -1310,4 +1311,3 @@ async def jump_to_chapter(message: Message):
 
     # 3) Показываем первый шаг
     await show_story(message, 0)
-
