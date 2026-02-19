@@ -1028,7 +1028,7 @@ async def ch5_keyrate_answer(cb: CallbackQuery):
         last_msg = await send_step(
             cb,
             text=CH5_KEYRATE["keeper_fix_text"],
-            photo=CH5_KEYRATE["keeper_fix_photo"],
+            photo=CH5_KEYRATE.get("keeper_fix_photo_A", CH5_KEYRATE["keeper_fix_photo"]),
         )
 
         # Добавляем кнопку к последнему сообщению
@@ -1039,7 +1039,7 @@ async def ch5_keyrate_answer(cb: CallbackQuery):
         last_msg = await send_step(
             cb,
             text=CH5_KEYRATE["keeper_fix_text"],
-            photo=CH5_KEYRATE["keeper_fix_photo"],
+            photo=CH5_KEYRATE.get("keeper_fix_photo_V", CH5_KEYRATE["keeper_fix_photo"]),
         )
 
         await last_msg.edit_reply_markup(reply_markup=keyrate_thanks_kb())

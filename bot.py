@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+from aiogram.types import BotCommand, MenuButtonCommands
 from aiogram.fsm.storage.memory import MemoryStorage
 from handlers.pvp_quiz import router as pvp_router
 from handlers import campaign
@@ -28,6 +29,12 @@ async def main():
     dp.include_router(campaign.router)
     # на всякий случай убираем webhook
     await bot.delete_webhook(drop_pending_updates=True)
+
+    await bot.set_my_commands([
+        BotCommand(command="start", description="Запустить бота"),
+        BotCommand(command="menu", description="Открыть главное меню"),
+    ])
+    await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
 
     logging.info("✅ Starting polling...")
     await dp.start_polling(bot)

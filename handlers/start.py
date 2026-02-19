@@ -2,11 +2,16 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
+
 from handlers.pvp_quiz import invite_kb
 from services.pvp_storage import get_match
 from keyboards.main_menu import main_menu_kb
 from services.scoring import upsert_user
+
 router = Router()
+
+# Храним последнее сообщение с главным меню, чтобы гасить старые кнопки.
+_last_menu_message_id: dict[int, int] = {}
 
 MENU_TEXT = (
     "🏠 Главное меню\n\n"
@@ -18,6 +23,33 @@ MENU_TEXT = (
     "— 📖 проходить увлекательную сюжетную линию\n\n"
     "Выбери, с чего хочешь начать 👇"
 )
+
+
+async def _deactivate_previous_menu(message: Message) -> None:
+    chat_id = message.chat.id
+    previous_menu_id = _last_menu_message_id.get(chat_id)
+    if not previous_menu_id:
+        return
+
+    if previous_menu_id == message.message_id:
+        return
+
+    try:
+        await message.bot.edit_message_reply_markup(
+            chat_id=chat_id,
+            message_id=previous_menu_id,
+            reply_markup=None,
+        )
+    except Exception:
+        # Сообщение уже удалено/изменено — пропускаем.
+        pass
+
+
+async def show_menu(message: Message):
+    await _deactivate_previous_menu(message)
+    sent = await message.answer(MENU_TEXT, reply_markup=main_menu_kb())
+    _last_menu_message_id[sent.chat.id] = sent.message_id
+
 
 @router.message(Command("start"))
 async def start_cmd(message: Message, state: FSMContext):
@@ -40,39 +72,35 @@ async def start_cmd(message: Message, state: FSMContext):
         )
         return
 
-    # ✅ если это обычный /start — показываем меню
     await show_menu(message)
-    
-
-    
-async def show_menu(message: Message):
-    await message.answer(MENU_TEXT, reply_markup=main_menu_kb())
 
 
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext):
-    await state.clear()          # ✅ СБРОС ВСЕХ СОСТОЯНИЙ
+    await state.clear()
     await show_menu(message)
 
 
 @router.message(Command("menu"))
 async def menu(message: Message, state: FSMContext):
-    await state.clear()          # ✅ СБРОС ВСЕХ СОСТОЯНИЙ
+    await state.clear()
     await show_menu(message)
 
 
 @router.callback_query(F.data == "menu:home")
 async def menu_home(cb: CallbackQuery, state: FSMContext):
-    await state.clear()          # ✅ СБРОС ВСЕХ СОСТОЯНИЙ
+    await state.clear()
 
     if cb.message and cb.message.text:
         await cb.message.edit_text(MENU_TEXT, reply_markup=main_menu_kb())
+        _last_menu_message_id[cb.message.chat.id] = cb.message.message_id
     else:
         if cb.message:
             try:
                 await cb.message.delete()
             except Exception:
                 pass
-        await cb.message.answer(MENU_TEXT, reply_markup=main_menu_kb())
+        sent = await cb.message.answer(MENU_TEXT, reply_markup=main_menu_kb())
+        _last_menu_message_id[sent.chat.id] = sent.message_id
 
     await cb.answer()
