@@ -190,8 +190,7 @@ async def show_story(event: Union[CallbackQuery, Message], step_idx: int):
         markup = keyrate_kb()
     else:
         next_text = step.get("next_text", "Далее")
-        show_menu = (step_idx == 0)
-        markup = story_kb(next_text, show_menu=show_menu)
+        markup = story_kb(next_text, show_menu=False)
 
     # 🚫 ВАЖНО: если шаг с автопереходом — кнопок быть не должно (иначе мигание)
     if step.get("autonext"):
