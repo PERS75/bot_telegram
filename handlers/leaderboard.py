@@ -3,7 +3,6 @@ from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from keyboards.main_menu import back_to_menu_kb
 from services.scoring import upsert_user, get_daily_leaderboard, get_leaderboard, get_user_display
 
 router = Router()
@@ -28,11 +27,6 @@ def render_total() -> str:
         lines.append(f"{i}. {get_user_display(uid)} — {pts}")
     return "\n".join(lines)
 
-
-@router.message(Command("leaderboard"))
-async def leaderboard_msg(message: Message):
-    upsert_user(message.from_user.id, message.from_user.full_name, message.from_user.username)
-    await message.answer(render_daily(), reply_markup=back_to_menu_kb())
 
 def leaderboard_kb(active: str = "daily"):
     kb = InlineKeyboardBuilder()
