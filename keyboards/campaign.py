@@ -82,6 +82,13 @@ def keyrate_back_kb() -> InlineKeyboardMarkup:
     kb.adjust(1)
     return kb.as_markup()
 
+def ch3_story_choice_kb():
+    kb = InlineKeyboardBuilder()
+    kb.button(text="У меня остались вопросы", callback_data="camp:next")
+    kb.button(text="Продолжить сюжет", callback_data="camp:skip_ai")
+    kb.adjust(1)
+    return kb.as_markup()
+
 def ch5_quiz_kb(q_idx: int, options: list[str]):
     kb = InlineKeyboardBuilder()
     for i, opt in enumerate(options):

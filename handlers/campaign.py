@@ -18,7 +18,12 @@ from data.campaign.ch4 import CH4_STEPS, CH4_LIFTS
 from data.campaign.ch5 import CH5_STEPS, CH5_KEYRATE
 from data.campaign.ch5_quiz import CH5_QUIZ, CH5_QUIZ_PHOTOS, CH5_QUIZ_ACHIEVEMENTS
 
-from keyboards.campaign import keyrate_kb, keyrate_back_kb, keyrate_thanks_kb, keyrate_win_kb, ch5_quiz_kb, ch5_quiz_next_kb, ch5_quiz_menu_kb, story_kb, crossword_kb, ai_entry_kb, rebus_kb, ai_back_kb, ai_done_kb
+from keyboards.campaign import (
+    keyrate_kb, keyrate_back_kb, keyrate_thanks_kb, keyrate_win_kb,
+    ch5_quiz_kb, ch5_quiz_next_kb, ch5_quiz_menu_kb,
+    story_kb, crossword_kb, ai_entry_kb, rebus_kb, ai_back_kb, ai_done_kb,
+    ch3_story_choice_kb
+)
 from services.campaign_progress import get_current_chapter, set_current_chapter
 from services.ai_client import ask_economist
 from html import escape as html_escape
@@ -188,6 +193,8 @@ async def show_story(event: Union[CallbackQuery, Message], step_idx: int):
     # клавиатура: keyrate_immediate -> варианты, иначе -> story_kb
     if step.get("keyrate_immediate"):
         markup = keyrate_kb()
+    elif step.get("next_action") == "ai_qna":
+        markup = ch3_story_choice_kb()
     else:
         next_text = step.get("next_text", "Далее")
         markup = story_kb(next_text, show_menu=False)
@@ -451,6 +458,32 @@ async def camp_next(cb: CallbackQuery):
 
     await show_story(cb, step_idx + 1)
 
+@router.callback_query(F.data == "camp:skip_ai")
+async def camp_skip_ai(cb: CallbackQuery):
+    user_id = cb.from_user.id
+
+    step_idx = get_step(user_id)
+    steps = get_steps_for(user_id)
+
+    # защита от устаревшей кнопки
+    last_id = state.get(user_id, {}).get("last_story_msg_id")
+    if last_id and cb.message.message_id != last_id:
+        await cb.answer("Эта кнопка устарела 🙂", show_alert=False)
+        return
+
+    # выключаем кнопки у текущего сообщения
+    try:
+        await cb.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+
+    # перескакиваем через ai_qna и choice
+    next_step = step_idx + 1
+    while next_step < len(steps) and steps[next_step].get("type") in {"ai_qna", "choice"}:
+        next_step += 1
+
+    await cb.answer()
+    await show_story(cb, next_step) 
 
 @router.callback_query(F.data == "camp:hint")
 async def camp_hint(cb: CallbackQuery):
