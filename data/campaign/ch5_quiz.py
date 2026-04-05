@@ -35,12 +35,12 @@ CH5_QUIZ = [
 
 # 6 картинок под итог (0..5 правильных)
 CH5_QUIZ_PHOTOS = {
-    0: "data/campaign/assets/ch5_quiz/img_0.jpg",
-    1: "data/campaign/assets/ch5_quiz/img_1.jpg",
-    2: "data/campaign/assets/ch5_quiz/img_2.jpg",
-    3: "data/campaign/assets/ch5_quiz/img_3.jpg",
-    4: "data/campaign/assets/ch5_quiz/img_4.jpg",
-    5: "data/campaign/assets/ch5_quiz/img_5.jpg",
+    0: "data/campaign/assets/ch5_quiz/img_0.png",
+    1: "data/campaign/assets/ch5_quiz/img_1.png",
+    2: "data/campaign/assets/ch5_quiz/img_2.png",
+    3: "data/campaign/assets/ch5_quiz/img_3.png",
+    4: "data/campaign/assets/ch5_quiz/img_4.png",
+    5: "data/campaign/assets/ch5_quiz/img_5.png",
 }
 
 # Достижение по числу правильных (можешь поменять названия)
